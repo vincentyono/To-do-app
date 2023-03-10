@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface Task {
   id: string;
   title: string;
-  timestamp: Date;
+  timestamp: string;
   status: boolean;
 }
 

@@ -50,7 +50,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
           id: short.generate(),
           title,
           status: Boolean(status),
-          timestamp: new Date(),
+          timestamp: new Date().toLocaleString('en-US'),
         })
       );
 

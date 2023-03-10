@@ -15,7 +15,7 @@ import { deleteTask, updateTask } from '../features/todoSlice';
 interface TodoCardProps {
   id: string;
   title: string;
-  timestamp: Date;
+  timestamp: string;
   status: boolean;
 }
 
@@ -99,8 +99,15 @@ export default function TodoCard({
     <Container>
       <Checkbox size='lg' isChecked={isChecked} onChange={handleCheck} />
       <TitleContainer>
-        <Title>{title}</Title>
-        <Timestamp>{timestamp.toString()}</Timestamp>
+        {isChecked ? (
+          <Title style={{ textDecoration: 'line-through', color: '#00000080' }}>
+            {title}
+          </Title>
+        ) : (
+          <Title>{title}</Title>
+        )}
+
+        <Timestamp>{timestamp}</Timestamp>
       </TitleContainer>
       <ButtonContainer>
         <IconButton
