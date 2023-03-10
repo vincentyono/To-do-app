@@ -25,7 +25,6 @@ const TodoContainer = styled.div`
 
 export default function App() {
   const todo = useSelector((state: RootState) => state.todo.value);
-  useEffect(() => {}, [todo]);
 
   return (
     <>
