@@ -6,7 +6,6 @@ import { Box } from '@chakra-ui/react';
 import TodoCard from './components/TodoCard';
 import Footer from './components/Footer';
 import MainHeader from './components/MainHeader';
-import { useEffect } from 'react';
 
 const Main = styled.main`
   padding-inline: 25%;
