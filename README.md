@@ -2,6 +2,10 @@
 
 COMP67030001 - Web Application Development and Security (Assignment)
 
+## Live link
+
+https://comp6703001-assignment-to-do-app.netlify.app/
+
 ## Screen shot
 
 ![Screenshot](https://github.com/vincentyono/To-do-app/blob/master/screenshot.png)
