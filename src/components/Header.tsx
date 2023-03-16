@@ -13,7 +13,7 @@ const Title = styled.h1`
   text-align: center;
   font-family: 'Poppins', sans-serif;
   font-weight: 900;
-  color: #2a4365;
+  color: #3f3d56;
 `;
 
 export default function Header({ children }: HeaderProps) {
