@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface HeaderProps {
@@ -19,7 +20,9 @@ const Title = styled.h1`
 export default function Header({ children }: HeaderProps) {
   return (
     <Container>
-      <Title>{children}</Title>
+      <Link to='/'>
+        <Title>{children}</Title>
+      </Link>
     </Container>
   );
 }
