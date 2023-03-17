@@ -16,8 +16,8 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useDispatch } from 'react-redux';
-import short from 'short-uuid';
 import { addTask, Task, updateTask } from '../features/todoSlice';
+import { nanoid } from '@reduxjs/toolkit';
 
 interface TodoModalProps {
   isOpen: boolean;
@@ -47,7 +47,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
     if (!Task) {
       dispatch(
         addTask({
-          id: short.generate(),
+          id: nanoid(11),
           title,
           status: Boolean(status),
           timestamp: new Date().toLocaleString('en-US'),
