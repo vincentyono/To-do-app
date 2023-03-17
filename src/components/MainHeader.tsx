@@ -4,6 +4,7 @@ import TodoModal from './TodoModal';
 import { useDispatch } from 'react-redux';
 import { filterTask } from '../features/todoSlice';
 import { Filter } from '../features/todoSlice';
+import { AppDispatch } from '../app/store';
 
 const Container = styled.header`
   display: flex;
@@ -16,7 +17,7 @@ const Option = styled.option`
 
 export default function MainHeader() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch(filterTask(e.currentTarget.value as Filter));
@@ -25,27 +26,29 @@ export default function MainHeader() {
   return (
     <Container>
       <Button
-        bg='blue.700'
-        color='blue.50'
-        colorScheme='blue'
+        bg='#3f3d56'
+        color='white'
+        _hover={{
+          backgroundColor: '#3f3d56e0',
+        }}
         paddingInline='2rem'
         onClick={onOpen}
       >
         Add Task
       </Button>
       <Select
+        bg='#3f3d56'
+        color='white'
+        _hover={{
+          backgroundColor: '#3f3d56e0',
+        }}
         colorScheme='blue'
         variant='filled'
-        bg='blue.700'
-        color='blue.50'
         width='fit-content'
         fontWeight='600'
-        _hover={{
-          backgroundColor: 'blue.600',
-        }}
         _focus={{
           boxShadow: 'none',
-          backgroundColor: 'blue.700',
+          backgroundColor: '#3f3d56',
           borderColor: 'gray.200',
         }}
         onChange={handleSelect}

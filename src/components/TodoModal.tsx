@@ -15,9 +15,12 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addTask, Task, updateTask } from '../features/todoSlice';
 import { nanoid } from '@reduxjs/toolkit';
+import { AppDispatch, RootState } from '../app/store';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface TodoModalProps {
   isOpen: boolean;
@@ -26,12 +29,31 @@ interface TodoModalProps {
   Task: Task | null;
 }
 
+const handleSubmit = async () => {
+  try {
+    await addDoc(collection(db, 'todo'), {
+      title: title,
+      status: status,
+      timestamp: new Date().toLocaleDateString('en-US'),
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+  }
+};
+
 export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
   const [title, setTitle] = useState(Task?.title ? Task.title : '');
   const [status, setStatus] = useState(Task?.status ? Task.status : false);
   const [isError, setIsError] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const toast = useToast();
+  const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     setTitle(Task?.title ? Task.title : '');
@@ -48,6 +70,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
       dispatch(
         addTask({
           id: nanoid(11),
+          user_id: user?.user.uid as string,
           title,
           status: Boolean(status),
           timestamp: new Date().toLocaleString('en-US'),
@@ -66,6 +89,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
       dispatch(
         updateTask({
           id: Task.id,
+          user_id: user?.user.uid as string,
           title,
           status: Boolean(status),
           timestamp: Task.timestamp,

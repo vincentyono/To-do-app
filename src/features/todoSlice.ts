@@ -1,7 +1,30 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  nanoid,
+  PayloadAction,
+} from '@reduxjs/toolkit';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  DocumentData,
+  getDoc,
+  getDocs,
+  orderBy,
+  Query,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { RootState } from '../app/store';
+import { useSelector } from 'react-redux';
 
 export interface Task {
   id: string;
+  user_id: string;
   title: string;
   timestamp: string;
   status: boolean;
@@ -13,17 +36,8 @@ export enum Filter {
   COMPLETED = 'Completed',
 }
 
-const getInitialValue = (): Task[] => {
-  const localTodoApp = window.localStorage.getItem('todoApp');
-
-  if (localTodoApp) return JSON.parse(localTodoApp);
-
-  window.localStorage.setItem('todoApp', JSON.stringify([]));
-  return [];
-};
-
 const initialState = {
-  value: getInitialValue(),
+  value: [] as Task[],
 };
 
 export const todoSlice = createSlice({
