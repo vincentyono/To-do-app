@@ -3,7 +3,10 @@ import Footer from '../components/Footer';
 import GetStarted from '/get-started.svg';
 import { Button, Container, Stack } from '@chakra-ui/react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../app/store';
 
 const H2 = styled.h2`
   text-align: center;
@@ -15,6 +18,15 @@ const H2 = styled.h2`
 `;
 
 export default function Home() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/Dashboard');
+    }
+  }, []);
+
   return (
     <>
       <Header>To do App</Header>
