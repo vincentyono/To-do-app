@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Checkbox,
   IconButton,
-  Toast,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
@@ -11,6 +10,7 @@ import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import TodoModal from './TodoModal';
 import { useDispatch } from 'react-redux';
 import { deleteTask, updateTask } from '../features/todoSlice';
+import { AppDispatch } from '../app/store';
 
 interface TodoCardProps {
   id: string;
@@ -55,14 +55,10 @@ export default function TodoCard({
   timestamp,
   status,
 }: TodoCardProps) {
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(status);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const toast = useToast();
-
-  useEffect(() => {
-    setIsChecked(status);
-  }, [isOpen]);
 
   const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsChecked(Boolean(e.currentTarget.checked));
@@ -70,21 +66,14 @@ export default function TodoCard({
       updateTask({
         id,
         title,
-        timestamp,
+        timestamp: Date.parse(timestamp),
         status: Boolean(e.currentTarget.checked),
       })
     );
   };
 
   const handleDelete = () => {
-    dispatch(
-      deleteTask({
-        id,
-        title,
-        timestamp,
-        status,
-      })
-    );
+    dispatch(deleteTask(id));
     toast({
       title: 'Successfully deleted',
       status: 'success',
@@ -97,9 +86,14 @@ export default function TodoCard({
 
   return (
     <Container>
-      <Checkbox size='lg' isChecked={isChecked} onChange={handleCheck} />
+      <Checkbox
+        size='lg'
+        colorScheme='purple'
+        isChecked={status}
+        onChange={(e) => handleCheck(e)}
+      />
       <TitleContainer>
-        {isChecked ? (
+        {status ? (
           <Title style={{ textDecoration: 'line-through', color: '#00000080' }}>
             {title}
           </Title>
@@ -115,21 +109,24 @@ export default function TodoCard({
           aria-label={'Delete'}
           mr={2}
           colorScheme='red'
-          onClick={handleDelete}
+          onClick={() => handleDelete()}
         />
         <IconButton
           icon={<EditIcon />}
           aria-label={'Edit'}
           onClick={onOpen}
-          colorScheme='blue'
-          backgroundColor='blue.700'
+          color='white'
+          backgroundColor='#3f3d56'
+          _hover={{
+            backgroundColor: '#5a5779',
+          }}
         />
       </ButtonContainer>
       <TodoModal
         isOpen={isOpen}
         onOpen={onOpen}
         onClose={onClose}
-        Task={{ id, title, status, timestamp }}
+        task={{ id, title, status }}
       />
     </Container>
   );
