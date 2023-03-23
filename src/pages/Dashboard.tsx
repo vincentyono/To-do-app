@@ -2,29 +2,26 @@ import Header from '../components/Header';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../app/store';
 import styled from 'styled-components';
-import { Box, Container } from '@chakra-ui/react';
+import { Box, Container, Spinner } from '@chakra-ui/react';
 import TodoCard from '../components/TodoCard';
 import Footer from '../components/Footer';
 import MainHeader from '../components/MainHeader';
+import { useEffect } from 'react';
+import { onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { setTask, taskCollection, TaskDocument } from '../features/todoSlice';
+import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import {
-  collection,
-  DocumentData,
-  onSnapshot,
-  orderBy,
-  query,
-  QuerySnapshot,
-  where,
-} from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { signOut } from '../features/authSlice';
 
 const Main = styled.main`
   padding-inline: 25%;
+
+  @media (max-width: 650px) {
+    padding-inline: 1rem;
+  }
 `;
 
 const TodoContainer = styled.div`
+  position: 'relative';
   min-width: '100%';
   margin-block: 2em;
   display: flex;
@@ -37,59 +34,53 @@ const TodoContainer = styled.div`
 
 export default function Dashboard() {
   const dispatch = useDispatch<AppDispatch>();
-  const todo = useSelector((state: RootState) => state.todo.value);
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [tasks, setTasks] = useState<DocumentData | null>(null);
+  const { filteredTasks, isLoading } = useSelector(
+    (state: RootState) => state.todo
+  );
   const navigate = useNavigate();
-
   useEffect(() => {
-    if (user === null || user === undefined) {
+    if (!auth.currentUser) {
       navigate('/');
+      return;
     }
-  }, [user]);
-
-  useEffect(() => {
-    const q = query(
-      collection(db, 'todo'),
-      where('user_id', '==', user?.user.uid),
-      orderBy('timestamp')
+    const unsubscribe = onSnapshot(
+      query(
+        taskCollection,
+        where('user_id', '==', auth.currentUser?.uid as string),
+        orderBy('timestamp', 'desc')
+      ),
+      (querySnapshot) => {
+        dispatch(
+          setTask(
+            querySnapshot.docs.map((doc) => {
+              const id = doc.id;
+              return { id, ...doc.data() } as TaskDocument;
+            })
+          )
+        );
+      }
     );
-    onSnapshot(q, (querySnapshot) => {
-      setTasks(
-        querySnapshot.docs.map((doc) => ({ id: doc.id, data: doc.data }))
-      );
-    });
+    return unsubscribe;
   }, []);
-
-  const handleSignOut = () => {
-    dispatch(signOut());
-  };
 
   return (
     <>
-      <Header>To do App</Header>
-      <Container position='absolute' top='0.75rem' right='11rem'>
-        <Box
-          as='button'
-          fontWeight='500'
-          color='#3f3d56'
-          fontSize='1.1rem'
-          onClick={handleSignOut}
-        >
-          Sign out
-        </Box>
-      </Container>
+      <Header variant='dashboard' />
       <Main>
         <MainHeader />
         <TodoContainer>
-          {todo.length > 0 ? (
-            todo.map((task) => (
+          {filteredTasks.length > 0 ? (
+            filteredTasks.map((task, index) => (
               <TodoCard
-                key={task.id}
-                id={task.id}
-                title={task.title}
-                timestamp={task.timestamp}
-                status={task.status}
+                key={index}
+                id={task.id as string}
+                title={task?.title as string}
+                timestamp={
+                  new Date(task?.timestamp as number).toLocaleString(
+                    'en-US'
+                  ) as string
+                }
+                status={task?.status as boolean}
               />
             ))
           ) : (
@@ -102,6 +93,24 @@ export default function Dashboard() {
             >
               No Task
             </Box>
+          )}
+          {isLoading && (
+            <Container
+              position='absolute'
+              minWidth='100%'
+              minHeight='100%'
+              bg='#ffffff60'
+              top='0'
+              left='0'
+              centerContent
+            >
+              <Spinner
+                size='xl'
+                color='#3F3D56'
+                marginBlock='auto'
+                thickness='4px'
+              />
+            </Container>
           )}
         </TodoContainer>
       </Main>
