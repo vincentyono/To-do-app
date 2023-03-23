@@ -15,6 +15,7 @@ import {
   Input,
   Spinner,
   Stack,
+  FormErrorMessage,
 } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
 import Footer from '../components/Footer';
@@ -31,34 +32,50 @@ const Title = styled.header`
 `;
 
 export default function Signin() {
-  const { user, isLoading, error } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isLoading, error } = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isEmailOrPasswordError, setIsEmailOrPasswordError] = useState(false);
+  const [isInvalidEmail, setIsInvalidEmail] = useState(false);
+  const [isInvalidPassword, setIsInvalidPassword] = useState(false);
   const [isInternalError, setIsInternalError] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   const handleSignInWithEmail = () => {
+    const emailValidator = new RegExp(
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+
+    if (!emailValidator.test(email)) {
+      setIsInvalidEmail(true);
+      return;
+    }
+
+    if (password.length === 0) {
+      setIsInvalidPassword(true);
+      return;
+    }
+
     dispatch(signInEmail({ email, password }));
+
     if (
       error === 'Firebase: (auth/invalid-email).' ||
       error === 'Firebase: (auth/invalid-password).'
     ) {
+      setIsInternalError(false);
       setIsEmailOrPasswordError(true);
       return;
     }
 
     if (error == 'Firebase: Error (auth/internal-error).') {
+      setIsEmailOrPasswordError(false);
       setIsInternalError(true);
       return;
     }
 
     if (auth.currentUser) {
-      console.log(auth.currentUser);
-      navigate('/Dashboard');
+      navigate('/dashboard');
     }
 
     setIsEmailOrPasswordError(false);
@@ -70,17 +87,19 @@ export default function Signin() {
       setIsEmailOrPasswordError(true);
       return;
     }
-    console.log(auth.currentUser);
+
     setIsEmailOrPasswordError(false);
   };
 
   useEffect(() => {
-    if (user !== null) navigate('/dashboard');
-  }, [user]);
+    if (auth.currentUser) {
+      navigate('/dashboard');
+    }
+  }, [auth.currentUser]);
 
   return (
     <>
-      <Header>To do App</Header>
+      <Header variant='default' />
       {isEmailOrPasswordError && (
         <Container maxW='lg' paddingInline='2rem' marginBottom='1rem'>
           <Alert status='error'>
@@ -110,25 +129,40 @@ export default function Signin() {
       >
         <Title>Sign in</Title>
 
-        <FormControl marginTop='1rem'>
+        <FormControl marginTop='1rem' isInvalid={isInvalidEmail}>
           <FormLabel>Email</FormLabel>
           <Input
             type='email'
+            value={email}
             focusBorderColor='#3F3D56'
             onChange={(e) => setEmail(e.target.value)}
           />
+          {isInvalidEmail && (
+            <FormErrorMessage fontWeight='500'>Invalid Email</FormErrorMessage>
+          )}
         </FormControl>
-        <FormControl marginTop='1rem'>
+        <FormControl marginTop='1rem' isInvalid={isInvalidPassword}>
           <FormLabel>Password</FormLabel>
           <Input
             type='password'
+            value={password}
             focusBorderColor='#3F3D56'
             onChange={(e) => setPassword(e.target.value)}
           />
+          {isInvalidPassword && (
+            <FormErrorMessage fontWeight='500'>
+              Password cannot be empty
+            </FormErrorMessage>
+          )}
         </FormControl>
         <Box marginBlock='0.5rem 1rem' fontWeight='500'>
           Forgot your password?{' '}
-          <LinkTo path='/forgot-password'>Reset Password</LinkTo>
+          <LinkTo
+            path='/forgot-password'
+            style={{ color: '#5c56c0', textDecoration: 'underline' }}
+          >
+            Reset Password
+          </LinkTo>
         </Box>
 
         <Stack>
@@ -138,7 +172,7 @@ export default function Signin() {
             bg='#6C63FF'
             _hover={{ backgroundColor: '#5c56c0' }}
             leftIcon={<EmailIcon />}
-            onClick={handleSignInWithEmail}
+            onClick={() => handleSignInWithEmail()}
           >
             Sign in with email
           </Button>
@@ -147,14 +181,22 @@ export default function Signin() {
             variant='outline'
             maxW='md'
             leftIcon={<FcGoogle />}
-            onClick={handleSignInWithGoogle}
+            _hover={{
+              cursor: 'pointer',
+            }}
+            onClick={() => handleSignInWithGoogle()}
           >
             Sign in with Google
           </Button>
         </Stack>
         <Box marginBlock='1rem 0.5rem' textAlign='center' fontWeight='500'>
           Don't have an account?{' '}
-          <LinkTo path='/signup'>Create an account</LinkTo>
+          <LinkTo
+            path='/signup'
+            style={{ color: '#5c56c0', textDecoration: 'underline' }}
+          >
+            Create an account
+          </LinkTo>
         </Box>
         {isLoading && (
           <Container
