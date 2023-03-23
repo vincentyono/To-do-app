@@ -22,10 +22,10 @@ import { EmailIcon } from '@chakra-ui/icons';
 import { LinkTo } from '../components/LinkTo';
 import Footer from '../components/Footer';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUp } from '../features/authSlice';
+import { signInGoogle, signUp } from '../features/authSlice';
 import { AppDispatch, RootState } from '../app/store';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { redirect, useNavigate } from 'react-router-dom';
 
 const Title = styled.header`
   font-size: 1.5em;
@@ -33,9 +33,7 @@ const Title = styled.header`
 `;
 
 export default function Signup() {
-  const { user, error, isLoading } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { error, isLoading } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
   const [internalError, setInternalError] = useState(false);
   const [email, setEmail] = useState('');
@@ -75,13 +73,17 @@ export default function Signup() {
     setIsPasswordNotMatchError(false);
   };
 
+  const handleSignInWithGoogle = () => {
+    dispatch(signInGoogle());
+  };
+
   useEffect(() => {
-    if (user !== null) navigate('/dashboard');
-  }, [user]);
+    if (auth.currentUser) navigate('/dashboard');
+  }, [auth.currentUser]);
 
   return (
     <>
-      <Header>To do App</Header>
+      <Header variant='default' />
       {internalError && (
         <Container maxW='lg' paddingInline='2rem' marginBottom='1rem'>
           <Alert status='error'>
@@ -161,17 +163,28 @@ export default function Signup() {
             color='white'
             _hover={{ backgroundColor: '#5c56c0' }}
             leftIcon={<EmailIcon />}
-            onClick={handleSignUpWithEmail}
+            onClick={() => handleSignUpWithEmail()}
           >
             Sign up with email
           </Button>
         </Stack>
 
         <Box fontWeight='500' textAlign='center' marginBlock='1.5rem'>
-          Have an account? <LinkTo path='/signin'>Sign In</LinkTo>
+          Have an account?{' '}
+          <LinkTo
+            path='/signin'
+            style={{ color: '#5c56c0', textDecoration: 'underline' }}
+          >
+            Sign In
+          </LinkTo>
         </Box>
         <Stack>
-          <Button variant='outline' maxW='md' leftIcon={<FcGoogle />}>
+          <Button
+            variant='outline'
+            maxW='md'
+            leftIcon={<FcGoogle />}
+            onClick={() => handleSignInWithGoogle()}
+          >
             Sign in with Google
           </Button>
         </Stack>
