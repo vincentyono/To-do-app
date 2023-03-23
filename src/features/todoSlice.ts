@@ -1,32 +1,24 @@
-import {
-  createAsyncThunk,
-  createSlice,
-  nanoid,
-  PayloadAction,
-} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
-  DocumentData,
-  getDoc,
-  getDocs,
-  orderBy,
-  Query,
-  query,
   updateDoc,
-  where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { RootState } from '../app/store';
-import { useSelector } from 'react-redux';
 
+export interface TaskDocument {
+  id?: string;
+  user_id?: string;
+  title?: string;
+  timestamp?: number;
+  status?: boolean;
+}
 export interface Task {
-  id: string;
   user_id: string;
   title: string;
-  timestamp: string;
+  timestamp: number;
   status: boolean;
 }
 
@@ -37,79 +29,144 @@ export enum Filter {
 }
 
 const initialState = {
-  value: [] as Task[],
+  error: null as unknown | null,
+  isLoading: false,
+  allTasks: [] as TaskDocument[],
+  filteredTasks: [] as TaskDocument[],
+  filter: 'All' as Filter,
 };
+
+export const taskCollection = collection(db, 'todo-task');
+
+export const addTask = createAsyncThunk(
+  'addTask',
+  async (task: Task, thunkApi) => {
+    try {
+      return await addDoc(taskCollection, { ...task });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return thunkApi.rejectWithValue(error.message);
+      }
+
+      if (typeof error === 'string') {
+        return thunkApi.rejectWithValue(error);
+      }
+    }
+  }
+);
+
+export const updateTask = createAsyncThunk(
+  'updateTask',
+  async (newDocument: TaskDocument, thunkApi) => {
+    try {
+      const oldDocument = doc(db, `todo-task/${newDocument.id}`);
+      await updateDoc(oldDocument, {
+        title: newDocument.title,
+        status: newDocument.status,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return thunkApi.rejectWithValue(error.message);
+      }
+
+      if (typeof error === 'string') {
+        return thunkApi.rejectWithValue(error);
+      }
+    }
+  }
+);
+export const deleteTask = createAsyncThunk(
+  'deleteTask',
+  async (id: string, thunkApi) => {
+    try {
+      const document = doc(db, `todo-task/${id}`);
+      return await deleteDoc(document);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return thunkApi.rejectWithValue(error.message);
+      }
+
+      if (typeof error === 'string') {
+        return thunkApi.rejectWithValue(error);
+      }
+    }
+  }
+);
 
 export const todoSlice = createSlice({
   name: 'todo',
   initialState,
   reducers: {
-    addTask: (state, action: PayloadAction<Task>) => {
-      state.value.push(action.payload);
-      const localTodoApp = window.localStorage.getItem('todoApp');
-
-      if (localTodoApp) {
-        const todoAppArr = JSON.parse(localTodoApp);
-        todoAppArr.push({ ...action.payload });
-        window.localStorage.setItem('todoApp', JSON.stringify(todoAppArr));
-      } else {
-        window.localStorage.setItem(
-          'todoApp',
-          JSON.stringify({ ...action.payload })
+    setTask: (state, action: PayloadAction<TaskDocument[]>) => {
+      state.allTasks = [...action.payload];
+      if (state.filter === Filter.ALL) {
+        state.filteredTasks = [...action.payload];
+      } else if (state.filter === Filter.INCOMPLETE) {
+        state.filteredTasks = action.payload.filter(
+          (task) => task.status === false
+        );
+      } else if (state.filter === Filter.COMPLETED) {
+        state.filteredTasks = action.payload.filter(
+          (task) => task.status === true
         );
       }
     },
 
-    updateTask: (state, action: PayloadAction<Task>) => {
-      const localTodoApp = window.localStorage.getItem('todoApp');
-      if (localTodoApp) {
-        const todoAppArr: Task[] = JSON.parse(localTodoApp);
-
-        todoAppArr.forEach((task) => {
-          if (task.id === action.payload.id) {
-            task.title = action.payload.title;
-            task.status = action.payload.status;
-          }
-        });
-
-        window.localStorage.setItem('todoApp', JSON.stringify(todoAppArr));
-        state.value = [...todoAppArr];
-      }
-    },
-
-    deleteTask: (state, action: PayloadAction<Task>) => {
-      const localTodoApp = window.localStorage.getItem('todoApp');
-      if (localTodoApp) {
-        const todoAppArr: Task[] = JSON.parse(localTodoApp);
-
-        todoAppArr.forEach((task, index) => {
-          if (task.id === action.payload.id) {
-            todoAppArr.splice(index, 1);
-          }
-        });
-
-        window.localStorage.setItem('todoApp', JSON.stringify(todoAppArr));
-        state.value = [...todoAppArr];
-      }
-    },
-
     filterTask: (state, action: PayloadAction<Filter>) => {
-      const localTodoApp = window.localStorage.getItem('todoApp');
-      if (localTodoApp) {
-        const todoAppArr: Task[] = JSON.parse(localTodoApp);
-
-        if (action.payload == Filter.ALL) {
-          state.value = [...todoAppArr];
-        } else if (action.payload == Filter.INCOMPLETE) {
-          state.value = todoAppArr.filter((task) => !task.status);
-        } else {
-          state.value = todoAppArr.filter((task) => task.status);
-        }
+      if (action.payload == Filter.ALL) {
+        state.filteredTasks = state.allTasks;
+      } else if (action.payload == Filter.INCOMPLETE) {
+        state.filteredTasks = state.allTasks.filter(
+          (task) => task.status === false
+        );
+      } else {
+        state.filteredTasks = state.allTasks.filter(
+          (task) => task.status === true
+        );
       }
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(addTask.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(addTask.pending, (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(addTask.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload as unknown;
+    });
+
+    builder.addCase(updateTask.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(updateTask.pending, (state, action) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(updateTask.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    builder.addCase(deleteTask.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(deleteTask.pending, (state, action) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(deleteTask.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+  },
 });
 
-export const { addTask, updateTask, deleteTask, filterTask } =
-  todoSlice.actions;
+export const { filterTask, setTask } = todoSlice.actions;
 export default todoSlice.reducer;
