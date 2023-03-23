@@ -2,14 +2,14 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface linkToProps {
-  className?: string;
+  style?: object;
   children?: string;
   path: string;
 }
 
-const linkTo = ({ className, children, path }: linkToProps) => {
+const linkTo = ({ style, children, path }: linkToProps) => {
   return (
-    <Link to={path} className={className}>
+    <Link to={path} style={style}>
       {children}
     </Link>
   );
