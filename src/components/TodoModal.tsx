@@ -16,49 +16,28 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTask, Task, updateTask } from '../features/todoSlice';
-import { nanoid } from '@reduxjs/toolkit';
+import { addTask, TaskDocument, updateTask } from '../features/todoSlice';
 import { AppDispatch, RootState } from '../app/store';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth } from '../firebase';
 
 interface TodoModalProps {
   isOpen: boolean;
   onClose(): void;
   onOpen(): void;
-  Task: Task | null;
+  task: TaskDocument | null;
 }
 
-const handleSubmit = async () => {
-  try {
-    await addDoc(collection(db, 'todo'), {
-      title: title,
-      status: status,
-      timestamp: new Date().toLocaleDateString('en-US'),
-    });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    if (typeof error === 'string') {
-      return error;
-    }
-  }
-};
-
-export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
-  const [title, setTitle] = useState(Task?.title ? Task.title : '');
-  const [status, setStatus] = useState(Task?.status ? Task.status : false);
+export default function TodoModal({ isOpen, onClose, task }: TodoModalProps) {
+  const [title, setTitle] = useState(task?.title ? task.title : '');
+  const [status, setStatus] = useState(task?.status ? task.status : false);
   const [isError, setIsError] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const toast = useToast();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { error } = useSelector((state: RootState) => state.todo);
 
   useEffect(() => {
-    setTitle(Task?.title ? Task.title : '');
-    setStatus(Task?.status ? Task.status : false);
-  }, [isOpen, Task]);
+    setTitle(task?.title ? task.title : '');
+    setStatus(task?.status ? task.status : false);
+  }, [isOpen, task]);
 
   const handleSubmit: React.MouseEventHandler<HTMLButtonElement> = () => {
     if (title === '') {
@@ -66,44 +45,25 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
       return;
     }
 
-    if (!Task) {
+    // Add task
+    if (!task) {
       dispatch(
         addTask({
-          id: nanoid(11),
-          user_id: user?.user.uid as string,
+          user_id: auth.currentUser?.uid as string,
           title,
           status: Boolean(status),
-          timestamp: new Date().toLocaleString('en-US'),
+          timestamp: new Date().getTime(),
         })
       );
-
-      toast({
-        title: 'Successfully created',
-        status: 'success',
-        variant: 'subtle',
-        isClosable: true,
-        position: 'bottom-right',
-        duration: 1000,
-      });
+      // Update Task
     } else {
       dispatch(
         updateTask({
-          id: Task.id,
-          user_id: user?.user.uid as string,
+          id: task.id,
           title,
-          status: Boolean(status),
-          timestamp: Task.timestamp,
+          status,
         })
       );
-
-      toast({
-        title: 'Successfully updated',
-        status: 'success',
-        variant: 'subtle',
-        isClosable: true,
-        position: 'bottom-right',
-        duration: 1000,
-      });
     }
     setTitle('');
     setStatus(false);
@@ -114,7 +74,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{Task ? 'Update Task' : 'Add Task'}</ModalHeader>
+        <ModalHeader>{task ? 'Update Task' : 'Add Task'}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl marginBottom='1em' isInvalid={isError} isRequired>
@@ -122,6 +82,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
             <Input
               placeholder='Enter Title...'
               value={title}
+              focusBorderColor='#3F3D56'
               onChange={(e) => setTitle(e.target.value)}
             />
 
@@ -135,6 +96,7 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
             <FormLabel>Status</FormLabel>
             <Select
               defaultValue={status.toString()}
+              focusBorderColor='#3F3D56'
               onChange={(e) => {
                 setStatus(e.currentTarget.value === 'true');
               }}
@@ -149,10 +111,13 @@ export default function TodoModal({ isOpen, onClose, Task }: TodoModalProps) {
             type='submit'
             mr={3}
             onClick={handleSubmit}
-            colorScheme='blue'
-            backgroundColor='blue.700'
+            color='white'
+            backgroundColor='#3F3D56'
+            _hover={{
+              backgroundColor: '#5a5779',
+            }}
           >
-            {Task ? 'Update Task' : 'Add Task'}
+            {task ? 'Update Task' : 'Add Task'}
           </Button>
           <Button
             colorScheme='red'
