@@ -15,8 +15,8 @@ import Home from './pages/Home';
 import Signin from './pages/Signin';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import { auth } from './firebase';
-import Logout from './pages/Logout';
+import Signout from './pages/Signout';
+import ForgotPassword from './pages/ForgotPassword';
 
 const Root = () => {
   return <Outlet />;
@@ -29,7 +29,8 @@ const router = createBrowserRouter(
       <Route path='signin' element={<Signin />} />
       <Route path='signup' element={<Signup />} />
       <Route path='dashboard' element={<Dashboard />} />
-      <Route path='logout' element={<Logout />} />
+      <Route path='forgot-password' element={<ForgotPassword />} />
+      <Route path='signout' element={<Signout />} />
     </Route>
   )
 );
