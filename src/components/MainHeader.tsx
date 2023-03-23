@@ -9,6 +9,7 @@ import { AppDispatch } from '../app/store';
 const Container = styled.header`
   display: flex;
   justify-content: space-between;
+  min-width: '100%';
 `;
 
 const Option = styled.option`
@@ -51,7 +52,7 @@ export default function MainHeader() {
           backgroundColor: '#3f3d56',
           borderColor: 'gray.200',
         }}
-        onChange={handleSelect}
+        onChange={(e) => handleSelect(e)}
       >
         <Option value={Filter.ALL}>All</Option>
         <Option value={Filter.INCOMPLETE}>Incomplete</Option>
@@ -61,7 +62,7 @@ export default function MainHeader() {
         isOpen={isOpen}
         onOpen={onOpen}
         onClose={onClose}
-        Task={null}
+        task={null}
       />
     </Container>
   );
