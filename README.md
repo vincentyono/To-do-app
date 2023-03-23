@@ -36,6 +36,20 @@ https://comp6703001-assignment-to-do-app.netlify.app/
 
 ![Screenshot](https://github.com/vincentyono/To-do-app/blob/master/screenshots/signout-page.png)
 
+## Getting started
+
+Before running the app, make sure to create a `.env` file at the root of the project directory.  
+You can use the template below for the required environment variables.
+
+```bash
+VITE_FIREBASE_API_KEY="your-firebase-api-key"
+VITE_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
+VITE_FIREBASE_PROJECT_ID="your-firebase-project-id"
+VITE_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
+VITE_FIREBASE_MESSAGING_SENDER_ID="your-firebase-messaging-sender-id"
+VITE_FIREBASE_APP_ID="your-firebase-app-id"
+```
+
 ## Scripts
 
 Run the app in the development mode.  
@@ -47,7 +61,7 @@ Build the app for production.
 
 > npm run build
 
-Preview the built app for production.
+Preview the built app for production.  
 Open http://localhost:4173 to view it in the browser.
 
 > npm run preview
@@ -64,3 +78,7 @@ This project was built using the following tools:
 - Chakra UI (v2.5.1)
 - Firebase (v9.17.2)
 - Vite (v4.1.0)
+
+#### Illustration by <a href="https://undraw.co/">unDraw</a> | <a href="https://undraw.co/illustrations">Original Image</a>
+
+#### Icons by <a href="https://chakra-ui.com/">Chakra UI</a> and <a href="https://www.flaticon.com/">Flaticon</a>
