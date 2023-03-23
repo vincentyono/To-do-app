@@ -1,12 +1,11 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import GetStarted from '/get-started.svg';
-import { Button, Container, Stack } from '@chakra-ui/react';
+import { Button, Container, Stack, Text } from '@chakra-ui/react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../app/store';
+import { auth } from '../firebase';
 
 const H2 = styled.h2`
   text-align: center;
@@ -18,21 +17,25 @@ const H2 = styled.h2`
 `;
 
 export default function Home() {
-  const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/Dashboard');
+    if (auth.currentUser) {
+      navigate('/dashboard');
     }
   }, []);
 
   return (
     <>
-      <Header>To do App</Header>
+      <Header variant='default' />
       <Container as='main' maxW='md' marginBlock='3rem 1.5rem'>
         <img src={GetStarted} alt='cat' />
         <H2>A simple To do app</H2>
+        <Text textAlign='center' fontWeight='500'>
+          Sign in with email using
+        </Text>
+        <Text textAlign='center'>Email: guest@email.com</Text>
+        <Text textAlign='center'>Password: testing123</Text>
         <Stack paddingInline='3.5rem'>
           <Button
             as={Link}
@@ -41,6 +44,7 @@ export default function Home() {
             color='white'
             marginBlock='2rem'
             _hover={{ backgroundColor: '#5c56c0' }}
+            onClick={() => navigate('/signin')}
           >
             Get started
           </Button>
