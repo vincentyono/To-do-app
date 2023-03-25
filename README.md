@@ -4,7 +4,7 @@ COMP67030001 - Web Application Development and Security (Assignment)
 
 ## Live link
 
-https://comp6703001-assignment-to-do-app.netlify.app/
+https://comp6703001-to-do-app-2502009583.netlify.app/
 
 ## Screenshots
 
@@ -78,6 +78,7 @@ This project was built using the following tools:
 - Chakra UI (v2.5.1)
 - Firebase (v9.17.2)
 - Vite (v4.1.0)
+- Docker
 
 #### Illustration by <a href="https://undraw.co/">unDraw</a> | <a href="https://undraw.co/illustrations">Original Image</a>
 
